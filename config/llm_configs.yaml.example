@@ -1,0 +1,12 @@
+configs:
+- api_key: ''            # .env の OPENAI_API_KEY が使われます。ここに直接書くことも可能
+  base_url: https://api.openai.com/v1
+  label: OpenAI GPT-4o
+  model: gpt-4o
+  provider: openai
+- api_key: 'ollama'      # Ollama はダミーキーでOK
+  base_url: http://localhost:11434/v1
+  label: Ollama-llama3
+  model: llama3
+  provider: openai-compatible
+selected_label: OpenAI GPT-4o
