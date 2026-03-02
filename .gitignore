@@ -36,6 +36,7 @@ Thumbs.db
 .kilocode/
 .sisyphus/
 .ruff_cache/
+.serena/
 
 # デバッグ・一時出力ファイル
 debug_*.xml
