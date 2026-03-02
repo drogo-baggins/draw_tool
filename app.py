@@ -2,9 +2,9 @@ import streamlit as st
 import os
 import yaml
 from dotenv import load_dotenv
-from streamlit_ace import st_ace
 from llm_client import LLMClient
 from pptx_exporter import PPTXNativeExporter
+from svg_processor import SVGProcessor
 from vision_feedback import VisionFeedback
 import base64
 
@@ -47,6 +47,8 @@ if "svg_code" not in st.session_state:
     st.session_state.svg_code = '<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="800" height="600" fill="#f0f8ff"/><circle cx="400" cy="300" r="100" fill="#ff6347"/></svg>'
 if "editor_content" not in st.session_state:
     st.session_state.editor_content = st.session_state.svg_code
+if "svg-editor" not in st.session_state:
+    st.session_state["svg-editor"] = st.session_state.editor_content
 if "refinement_versions" not in st.session_state:
     st.session_state.refinement_versions = []
 if "selected_version" not in st.session_state:
@@ -137,8 +139,10 @@ with col1:
                         generation_mode=gen_mode_value,
                     )
 
-                    st.session_state.svg_code = result["svg"]
-                    st.session_state.editor_content = result["svg"]
+                    sanitized = SVGProcessor.sanitize_svg(result["svg"])
+                    st.session_state.svg_code = sanitized
+                    st.session_state.editor_content = sanitized
+                    st.session_state["svg-editor"] = sanitized
                     st.session_state.refinement_versions = []
                     st.session_state.last_result_meta = {
                         "purpose": result["purpose"],
@@ -165,8 +169,10 @@ with col1:
                             )
                             st.session_state.refinement_versions = versions
                             st.session_state.selected_version = len(versions) - 1
-                            st.session_state.svg_code = versions[-1]["svg"]
-                            st.session_state.editor_content = versions[-1]["svg"]
+                            sanitized_r = SVGProcessor.sanitize_svg(versions[-1]["svg"])
+                            st.session_state.svg_code = sanitized_r
+                            st.session_state.editor_content = sanitized_r
+                            st.session_state["svg-editor"] = sanitized_r
                         except Exception as e:
                             st.warning(
                                 f"Refinement failed: {e}. Using initial generation."
@@ -189,17 +195,15 @@ with col1:
             st.warning("Code generation failed. Fell back to direct SVG mode.")
 
     st.subheader("Manual Edit (SVG Code)")
-    # ACE Editor for SVG
-    new_editor_val = st_ace(
-        value=st.session_state.editor_content,
-        language="xml",
-        theme="monokai",
+    new_editor_val = st.text_area(
+        label="SVG",
+        key="svg-editor",
         height=300,
-        key="ace-editor",
+        label_visibility="collapsed",
     )
-    if new_editor_val != st.session_state.editor_content:
-        st.session_state.svg_code = new_editor_val
-        st.session_state.editor_content = new_editor_val
+    # svg_code は常にエディタの現在値から同期する
+    st.session_state.svg_code = SVGProcessor.sanitize_svg(new_editor_val)
+    st.session_state.editor_content = new_editor_val
 
 with col2:
     st.subheader("Live Preview")

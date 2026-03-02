@@ -1,5 +1,4 @@
 streamlit
-streamlit-ace
 resvg-py
 python-pptx
 openai

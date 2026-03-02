@@ -20,6 +20,23 @@ from typing import List
 ALLOWED_IMPORTS = {"drawsvg", "math", "colorsys", "random"}
 TIMEOUT_SECONDS = 10
 
+# Built-in functions that can bypass import restrictions or cause harm
+DANGEROUS_BUILTINS = {
+    "exec", "eval", "compile", "__import__", "open",
+    "globals", "locals", "vars", "dir",
+    "getattr", "setattr", "delattr",
+    "breakpoint", "input", "memoryview",
+    "__loader__", "__spec__", "__builtins__",
+}
+
+# Environment variables passed to the subprocess (allowlist)
+SAFE_ENV_KEYS = {
+    "PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE",
+    "TEMP", "TMP", "USERPROFILE", "HOME",
+    "HOMEDRIVE", "HOMEPATH",
+    "PYTHONDONTWRITEBYTECODE",
+}
+
 
 class CodeExecutionError(Exception):
     """Raised when code execution fails for any reason."""
@@ -75,6 +92,46 @@ class CodeExecutor:
         return violations
 
     @staticmethod
+    def validate_builtins(code: str) -> List[str]:
+        """
+        Validate that the code does not call dangerous built-in functions
+        that could bypass import restrictions (e.g. exec, eval, __import__).
+
+        Args:
+            code: Python code to validate (must already be parseable)
+
+        Returns:
+            List of dangerous call names found (empty list if clean)
+        """
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            # SyntaxError will already be caught in validate_imports
+            return []
+
+        found: List[str] = []
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                # Direct call: exec(...), eval(...), __import__(...)
+                if isinstance(node.func, ast.Name):
+                    if node.func.id in DANGEROUS_BUILTINS:
+                        found.append(node.func.id)
+                # Attribute call: builtins.exec(...), obj.__class__.__init__(...)
+                elif isinstance(node.func, ast.Attribute):
+                    if node.func.attr in DANGEROUS_BUILTINS:
+                        found.append(node.func.attr)
+            # Detect attribute access even without a call (e.g. g = globals)
+            elif isinstance(node, ast.Attribute):
+                if node.attr in DANGEROUS_BUILTINS:
+                    found.append(node.attr)
+            elif isinstance(node, ast.Name):
+                if node.id in DANGEROUS_BUILTINS:
+                    found.append(node.id)
+
+        return found
+
+    @staticmethod
     def execute(code: str) -> str:
         """
         Execute code in a subprocess and capture SVG output.
@@ -96,6 +153,13 @@ class CodeExecutor:
                 f"Code imports disallowed modules: {', '.join(set(violations))}"
             )
 
+        # Validate dangerous built-in usage
+        dangerous = CodeExecutor.validate_builtins(code)
+        if dangerous:
+            raise ImportViolationError(
+                f"Code uses dangerous built-ins: {', '.join(set(dangerous))}"
+            )
+
         # Create temporary directory and file for execution
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpfile = os.path.join(tmpdir, "exec_code.py")
@@ -103,9 +167,9 @@ class CodeExecutor:
             with open(tmpfile, "w") as f:
                 f.write(code)
 
-            # Prepare environment: remove PYTHONSTARTUP, set PYTHONDONTWRITEBYTECODE
-            env = os.environ.copy()
-            env.pop("PYTHONSTARTUP", None)
+            # Prepare environment: pass only whitelisted keys to prevent
+            # leaking secrets (e.g. OPENAI_API_KEY) into the subprocess.
+            env = {k: v for k, v in os.environ.items() if k in SAFE_ENV_KEYS}
             env["PYTHONDONTWRITEBYTECODE"] = "1"
 
             # Execute code in subprocess with timeout

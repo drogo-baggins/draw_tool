@@ -9,7 +9,7 @@
 - **コード生成モード**: LLMがPythonコード（`drawsvg`ライブラリ）を生成し、実行結果としてSVGを取得。直接SVG出力より高品質な図形を生成可能
 - **ビジョンフィードバック**: ビジョン対応モデルが生成結果を画像として評価し、改善指示を元に反復的にSVGを洗練（オプション機能）
 - **リアルタイムプレビュー**: 生成・編集したSVGを即座に確認
-- **SVGコードエディタ**: `streamlit-ace` によるシンタックスハイライト付きコード編集
+- **SVGコードエディタ**: テキストエリアによるSVGコードの直接編集
 - **Refineモード**: 既存のSVGを元にLLMへ修正指示を出せる
 - **ネイティブPPTXエクスポート**: SVGパスをPowerPointの編集可能なシェイプに変換（グラデーション対応）
 
@@ -124,12 +124,12 @@ streamlit run app.py
 
 | モジュール                | 責務                                                                                                                                                                       |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `app.py`                  | StreamlitによるUI表示、ユーザー入力の収集、各モジュールのオーケストレーション                                                                                              |
+| `app.py`                  | StreamlitによるUI表示、ユーザー入力の収集、各モジュールのオーケストレーション。LLM生成SVGおよびマニュアル編集SVGをサニタイズしてから表示・保持                              |
 | `llm_client.py`           | OpenAI互換APIとの通信、用途自動分類（キーワード→LLMフォールバック）、YAMLテンプレートの読込・変数展開、Direct SVG / Code Generation の2モード分岐                          |
-| `code_executor.py`        | LLMが生成したPythonコードのサンドボックス実行。AST解析によるimportホワイトリスト検証（`drawsvg`, `math`, `colorsys`, `random` のみ許可）、subprocess分離、10秒タイムアウト |
+| `code_executor.py`        | LLMが生成したPythonコードのサンドボックス実行。ASTによるimportホワイトリスト検証・危険な組み込み関数ブロック、環境変数ホワイトリスト化、subprocess分離、10秒タイムアウト    |
 | `vision_feedback.py`      | SVGを `resvg_py` でPNG変換し、Vision APIに送信して視覚的評価を取得。評価結果を改善指示としてLLMに渡し、SVGを反復的に洗練                                                   |
 | `pptx_exporter.py`        | SVGの図形・パス・テキスト・グラデーションをPowerPointのネイティブ編集可能シェイプに変換                                                                                    |
-| `svg_processor.py`        | SVGのパース・変換ユーティリティ                                                                                                                                            |
+| `svg_processor.py`        | SVGサニタイズ（スクリプト除去・外部リソース参照除去・イベントハンドラ除去）、エンコードユーティリティ                                                                       |
 | `prompt_templates/*.yaml` | 用途別のシステムプロンプトテンプレート。分類キーワード、Direct SVG用プロンプト、Code Generation用プロンプトを定義                                                          |
 
 ### ビジョンフィードバックの動作詳細
@@ -177,6 +177,70 @@ selected_label: "OpenAI GPT-4o"
 ## PPTXエクスポートについて
 
 エクスポート機能は `python-pptx` と `svgelements` を使用し、SVGの図形・パス・テキスト・グラデーションをPowerPointのネイティブシェイプとして変換します。`resvg-py` (Rust製) を利用するため、Windowsでも Cairo DLL 不要で動作します。
+
+## セキュリティ対策
+
+本アプリはLLMが生成したコード・SVGを実行・表示するため、以下の多層的なセキュリティ対策を実装しています。
+
+### コード生成モードのサンドボックス（`code_executor.py`）
+
+LLMが生成したPythonコードは、実行前に2段階のAST静的解析を行います。
+
+**1. インポートホワイトリスト検証**
+
+`import` / `from ... import` 文を全て検査し、許可リスト外のモジュールをブロックします。
+
+| 許可モジュール | 用途 |
+| -------------- | ---- |
+| `drawsvg`      | SVG描画 |
+| `math`         | 数学関数 |
+| `colorsys`     | 色変換 |
+| `random`       | 乱数 |
+
+**2. 危険な組み込み関数のブロック**
+
+インポート文がなくても任意コードを実行できる組み込み関数・名前を `ast.walk` で検出しブロックします。
+
+```
+exec, eval, compile, __import__, open,
+globals, locals, vars, dir,
+getattr, setattr, delattr,
+breakpoint, input, memoryview
+```
+
+**3. subprocess 分離**
+
+コードは一時ディレクトリ内で独立したサブプロセスとして実行されます。
+- 作業ディレクトリを一時ディレクトリに限定
+- 10秒のタイムアウト
+
+**4. 環境変数ホワイトリスト**
+
+子プロセスに引き継ぐ環境変数を最小限の許可リスト（`PATH`, `TEMP`, `SYSTEMROOT` 等）に限定します。`OPENAI_API_KEY` などの機密情報は子プロセスから参照できません。
+
+```python
+SAFE_ENV_KEYS = {
+    "PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE",
+    "TEMP", "TMP", "USERPROFILE", "HOME",
+    "HOMEDRIVE", "HOMEPATH", "PYTHONDONTWRITEBYTECODE",
+}
+```
+
+### SVGサニタイズ（`svg_processor.py`）
+
+LLMが生成したSVGおよびユーザーのマニュアル編集内容は、表示前に必ずサニタイズされます。
+
+| 除去対象 | 例 |
+| -------- | -- |
+| `<script>` タグ | `<script>alert(1)</script>` |
+| `<foreignObject>` タグ | 任意のHTMLを埋め込み可能な要素 |
+| `on*` イベントハンドラ属性 | `onload="fetch('...')"` |
+| 外部URLへの `href` / `xlink:href` | `<image href="https://attacker.com/..."/>` |
+| `javascript:` URI | `<a href="javascript:alert(1)">` |
+
+通常の `data:image/png` 等の埋め込み画像はそのまま保持されます。
+
+> **Note**: 現実装は多層防御の一部です。信頼できないユーザーが生成したSVGを不特定多数に公開する用途には、さらに `defusedxml` や専用のSVGホワイトリストライブラリの導入を推奨します。
 
 ## ライセンス
 

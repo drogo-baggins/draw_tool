@@ -1,6 +1,7 @@
 import base64
 import re
 
+
 class SVGProcessor:
     @staticmethod
     def encode_svg(svg_code: str) -> str:
@@ -12,22 +13,59 @@ class SVGProcessor:
         if 'viewBox="' not in svg_code and 'width="' not in svg_code:
             # Simple fix: prepend a basic viewBox if missing
             svg_code = svg_code.replace('<svg', '<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet"', 1)
-        
+
         # Ensure the XML namespace is present
         if 'xmlns="http://www.w3.org/2000/svg"' not in svg_code:
             svg_code = svg_code.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"', 1)
-            
+
         b64 = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
         return f"data:image/svg+xml;base64,{b64}"
 
     @staticmethod
     def sanitize_svg(svg_code: str) -> str:
         """
-        Performs basic sanitization on the SVG code to prevent XSS.
-        In a production environment, use a robust library like defusedxml or Bleach.
+        Sanitize SVG code to prevent XSS and external resource leakage.
+
+        Removes:
+        - <script> tags
+        - Event handler attributes (onload, onclick, etc.)
+        - <use> elements referencing external URLs
+        - href / xlink:href attributes pointing to external URLs
+          (on <image>, <feImage>, <use>, <a>, and any element)
+        - javascript: URIs
+        - <foreignObject> elements (arbitrary HTML embedding)
         """
-        # Remove any <script> tags for basic safety
-        sanitized = re.sub(r'<script.*?>.*?</script>', '', svg_code, flags=re.DOTALL | re.IGNORECASE)
-        # Remove event handlers like onload, onclick, etc.
-        sanitized = re.sub(r'\son\w+=".*?"', '', sanitized, flags=re.IGNORECASE)
-        return sanitized.strip()
+        s = svg_code
+
+        # 1. Remove <script> blocks
+        s = re.sub(r'<script\b[^>]*>.*?</script>', '', s, flags=re.DOTALL | re.IGNORECASE)
+
+        # 2. Remove <foreignObject> blocks (can embed arbitrary HTML)
+        s = re.sub(r'<foreignObject\b[^>]*>.*?</foreignObject>', '', s, flags=re.DOTALL | re.IGNORECASE)
+
+        # 3. Remove event handler attributes (on*)
+        s = re.sub(r'\bon\w+\s*=\s*(?:"[^"]*"|\'[^\']*\')', '', s, flags=re.IGNORECASE)
+
+        # 4. Remove href / xlink:href attributes that reference external URLs or javascript:
+        #    Matches: href="https://..." xlink:href='http://...' href="javascript:..."
+        s = re.sub(
+            r'(?:xlink:)?href\s*=\s*(?:"(?:https?:|javascript:|data:(?!image/(?:png|jpeg|gif|webp|svg\+xml)))[^"]*"|'
+            r'\'(?:https?:|javascript:|data:(?!image/(?:png|jpeg|gif|webp|svg\+xml)))[^\']*\')',
+            '',
+            s,
+            flags=re.IGNORECASE,
+        )
+
+        # 5. Remove <image> / <feImage> elements that still carry an external src or href
+        #    (belt-and-suspenders after step 4)
+        s = re.sub(
+            r'<(?:image|feImage)\b[^>]*(?:href|src)\s*=\s*["\']https?://[^"\']*["\'][^>]*/?>',
+            '',
+            s,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        # 6. Remove javascript: URIs anywhere (e.g. in style attributes or custom attributes)
+        s = re.sub(r'javascript\s*:', 'invalid:', s, flags=re.IGNORECASE)
+
+        return s.strip()
