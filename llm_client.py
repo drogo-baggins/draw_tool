@@ -7,11 +7,15 @@ Supports:
 - YAML-based prompt templates loaded from prompt_templates/ directory
 """
 
+import logging
 import os
 import re
+import xml.etree.ElementTree as ET
 import yaml
 from typing import Optional
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 # Directory containing prompt template YAML files
 TEMPLATES_DIR = os.path.join(
@@ -48,10 +52,15 @@ def load_all_templates() -> dict[str, dict]:
 
 
 class LLMClient:
-    def __init__(self, api_key: str, model: str = "gpt-4o", base_url: str = None):
+    _MAX_REPAIR_ATTEMPTS = 2
+
+    def __init__(
+        self, api_key: str, model: str = "gpt-4o", base_url: Optional[str] = None
+    ):
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
         self._templates = load_all_templates()
+        self._last_repair_attempts = 0
 
     def classify_purpose(self, prompt: str) -> str:
         """
@@ -126,6 +135,7 @@ class LLMClient:
                 - 'fallback': True if fell back to direct_svg from code_generation.
         """
         # Resolve purpose
+        self._last_repair_attempts = 0
         if purpose == "auto":
             resolved_purpose = self.classify_purpose(prompt)
         elif purpose in VALID_PURPOSES:
@@ -158,6 +168,7 @@ class LLMClient:
                     "purpose": resolved_purpose,
                     "generation_mode": "code_generation",
                     "fallback": False,
+                    "repaired": self._last_repair_attempts > 0,
                 }
             except Exception:
                 # Fall back to direct SVG
@@ -169,6 +180,7 @@ class LLMClient:
                     "purpose": resolved_purpose,
                     "generation_mode": "direct_svg",
                     "fallback": True,
+                    "repaired": self._last_repair_attempts > 0,
                 }
 
         # Direct SVG mode (default)
@@ -180,36 +192,67 @@ class LLMClient:
             "purpose": resolved_purpose,
             "generation_mode": "direct_svg",
             "fallback": False,
+            "repaired": self._last_repair_attempts > 0,
         }
 
     def _generate_direct_svg(
         self, prompt: str, template: dict, mode_instruction: str, context_data: str
     ) -> str:
-        """Generate SVG by having the LLM output SVG code directly."""
+        """Generate SVG by having the LLM output SVG code directly.
+
+        After extracting the SVG from the LLM response, validates it as
+        well-formed XML.  If parsing fails, sends the error back to the
+        LLM for repair (up to ``_MAX_REPAIR_ATTEMPTS`` times).
+        """
         system_prompt_template = template.get("system_prompt", "")
         system_prompt = system_prompt_template.format(
             mode_instruction=mode_instruction,
             context_data=context_data,
         )
 
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Instruction: {prompt}"},
+        ]
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Instruction: {prompt}"},
-                ],
+                messages=messages,
                 temperature=0.3,
                 timeout=60.0,
             )
             content = response.choices[0].message.content.strip()
 
-            # Extract SVG tag
-            svg_match = re.search(r"<svg.*?</svg>", content, re.DOTALL | re.IGNORECASE)
-            if svg_match:
-                return svg_match.group()
-            else:
-                return content
+            svg = self._extract_svg_tag(content)
+            svg = self._sanitize_svg_text(svg)
+
+            parse_error = self._validate_svg_xml(svg)
+            if parse_error is None:
+                return svg
+
+            # Repair loop: feed parse error back to LLM
+            for attempt in range(1, self._MAX_REPAIR_ATTEMPTS + 1):
+                logger.warning(
+                    "SVG XML invalid (attempt %d/%d): %s",
+                    attempt,
+                    self._MAX_REPAIR_ATTEMPTS,
+                    parse_error,
+                )
+                svg = self._repair_svg_via_llm(svg, parse_error)
+                svg = self._sanitize_svg_text(svg)
+                parse_error = self._validate_svg_xml(svg)
+                if parse_error is None:
+                    logger.info("SVG repaired successfully on attempt %d", attempt)
+                    self._last_repair_attempts = attempt
+                    return svg
+
+            logger.warning(
+                "SVG repair exhausted after %d attempts, returning best-effort SVG",
+                self._MAX_REPAIR_ATTEMPTS,
+            )
+            self._last_repair_attempts = self._MAX_REPAIR_ATTEMPTS
+            return svg
         except Exception as e:
             raise Exception(f"Failed to generate SVG: {str(e)}")
 
@@ -275,3 +318,63 @@ class LLMClient:
 
         # Last resort: return as-is
         return content
+
+    # ------------------------------------------------------------------
+    # SVG validation & repair helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extract_svg_tag(content: str) -> str:
+        """Extract the <svg>...</svg> block from LLM output."""
+        match = re.search(r"<svg.*?</svg>", content, re.DOTALL | re.IGNORECASE)
+        return match.group() if match else content
+
+    @staticmethod
+    def _sanitize_svg_text(svg: str) -> str:
+        """Escape bare '&' characters that would break XML parsing."""
+        return re.sub(
+            r"&(?!(?:amp|lt|gt|quot|apos|#[0-9]+|#x[0-9a-fA-F]+);)",
+            "&amp;",
+            svg,
+        )
+
+    @staticmethod
+    def _validate_svg_xml(svg: str) -> Optional[str]:
+        """Return ``None`` if *svg* is well-formed XML, else the error message."""
+        try:
+            ET.fromstring(svg)
+            return None
+        except ET.ParseError as e:
+            return str(e)
+
+    def _repair_svg_via_llm(self, broken_svg: str, parse_error: str) -> str:
+        """Ask the LLM to fix an XML parse error in *broken_svg*."""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are an SVG repair assistant. "
+                            "Fix the XML error in the SVG below. "
+                            "Output ONLY the corrected <svg>…</svg>, no explanation."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"This SVG has an XML parse error:\n\n"
+                            f"Error: {parse_error}\n\n"
+                            f"SVG:\n{broken_svg}"
+                        ),
+                    },
+                ],
+                temperature=0.0,
+                timeout=30.0,
+            )
+            content = response.choices[0].message.content.strip()
+            return self._extract_svg_tag(content)
+        except Exception as e:
+            logger.warning("SVG repair LLM call failed: %s", e)
+            return broken_svg

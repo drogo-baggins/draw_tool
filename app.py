@@ -150,6 +150,7 @@ with col1:
                         "purpose": result["purpose"],
                         "generation_mode": result["generation_mode"],
                         "fallback": result["fallback"],
+                        "repaired": result.get("repaired", False),
                     }
 
                     # Vision refinement loop
@@ -195,6 +196,8 @@ with col1:
         )
         if meta.get("fallback"):
             st.warning("Code generation failed. Fell back to direct SVG mode.")
+        if meta.get("repaired"):
+            st.info("⚕️ SVG had XML errors that were auto-repaired by the LLM.")
 
     st.subheader("Manual Edit (SVG Code)")
     new_editor_val = st.text_area(
