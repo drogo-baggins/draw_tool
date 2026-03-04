@@ -250,12 +250,17 @@ with col2:
                 pptx_data = PPTXNativeExporter.generate_pptx_from_data(
                     st.session_state.svg_code
                 )
-                st.download_button(
-                    label="📥 Download Now",
-                    data=pptx_data,
-                    file_name="illustration_native.pptx",
-                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    use_container_width=True,
-                )
+                if not pptx_data:
+                    st.error(
+                        "PPTX generation failed: SVG could not be parsed. Check the SVG code for invalid XML (e.g. unescaped '&')."
+                    )
+                else:
+                    st.download_button(
+                        label="📥 Download Now",
+                        data=pptx_data,
+                        file_name="illustration_native.pptx",
+                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        use_container_width=True,
+                    )
             except Exception as e:
                 st.error(f"Export failed: {e}")
