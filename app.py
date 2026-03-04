@@ -10,7 +10,9 @@ import base64
 
 load_dotenv()
 
-CONFIG_FILE = "config/llm_configs.yaml"
+CONFIG_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "config", "llm_configs.yaml"
+)
 
 # Mapping from display names to internal values
 PURPOSE_MAP = {
