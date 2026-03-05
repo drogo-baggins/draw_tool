@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100">
+  <!-- Flat design person sitting at desk, facing right toward monitor -->
+  <!-- Desk surface -->
+  <rect x="30" y="52" width="86" height="4" rx="1" fill="#795548"/>
+  <!-- Desk legs -->
+  <rect x="34" y="56" width="4" height="34" fill="#795548"/>
+  <rect x="108" y="56" width="4" height="34" fill="#795548"/>
+  <!-- Monitor stand -->
+  <rect x="88" y="44" width="4" height="8" fill="#546E7A"/>
+  <rect x="82" y="48" width="16" height="4" rx="1" fill="#546E7A"/>
+  <!-- Monitor screen -->
+  <rect x="74" y="18" width="36" height="26" rx="2" fill="#37474F"/>
+  <rect x="76" y="20" width="32" height="22" rx="1" fill="#BBDEFB"/>
+  <!-- Person head (facing right) -->
+  <circle cx="24" cy="18" r="11" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M13 16 Q13 7 24 7 Q35 7 35 16 Z" fill="#5D4037"/>
+  <!-- Person body / shirt -->
+  <rect x="14" y="29" width="20" height="24" rx="4" fill="#1976D2"/>
+  <!-- Right arm (extended to desk/keyboard) -->
+  <rect x="34" y="38" width="20" height="8" rx="4" fill="#1976D2"/>
+  <!-- Hand on desk -->
+  <circle cx="55" cy="42" r="3.5" fill="#FFCCBC"/>
+  <!-- Left arm (at side) -->
+  <rect x="6" y="31" width="8" height="20" rx="4" fill="#1976D2"/>
+  <!-- Left hand -->
+  <circle cx="10" cy="53" r="3.5" fill="#FFCCBC"/>
+  <!-- Upper legs (horizontal - sitting) -->
+  <rect x="12" y="53" width="26" height="8" rx="3" fill="#37474F"/>
+  <!-- Lower legs -->
+  <rect x="12" y="61" width="8" height="20" rx="3" fill="#37474F"/>
+  <rect x="28" y="61" width="8" height="20" rx="3" fill="#37474F"/>
+  <!-- Shoes -->
+  <rect x="10" y="81" width="12" height="6" rx="3" fill="#455A64"/>
+  <rect x="26" y="81" width="12" height="6" rx="3" fill="#455A64"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="120" viewBox="0 0 140 120">
+  <!-- Flat design group of 3 people - team/group -->
+  <!-- Person 1 (left, blue shirt) -->
+  <circle cx="28" cy="16" r="11" fill="#FFCCBC"/>
+  <path d="M17 14 Q17 5 28 5 Q39 5 39 14 Z" fill="#5D4037"/>
+  <rect x="17" y="27" width="22" height="34" rx="4" fill="#1976D2"/>
+  <rect x="8" y="29" width="9" height="26" rx="4" fill="#1976D2"/>
+  <rect x="39" y="29" width="9" height="26" rx="4" fill="#1976D2"/>
+  <circle cx="12" cy="57" r="3.5" fill="#FFCCBC"/>
+  <circle cx="44" cy="57" r="3.5" fill="#FFCCBC"/>
+  <rect x="17" y="61" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="30" y="61" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="15" y="95" width="13" height="7" rx="3" fill="#455A64"/>
+  <rect x="28" y="95" width="13" height="7" rx="3" fill="#455A64"/>
+  <!-- Person 2 (center, green shirt) -->
+  <circle cx="70" cy="14" r="11" fill="#FFCCBC"/>
+  <path d="M59 12 Q59 3 70 3 Q81 3 81 12 Z" fill="#5D4037"/>
+  <rect x="59" y="25" width="22" height="34" rx="4" fill="#4CAF50"/>
+  <rect x="50" y="27" width="9" height="26" rx="4" fill="#4CAF50"/>
+  <rect x="81" y="27" width="9" height="26" rx="4" fill="#4CAF50"/>
+  <circle cx="54" cy="55" r="3.5" fill="#FFCCBC"/>
+  <circle cx="86" cy="55" r="3.5" fill="#FFCCBC"/>
+  <rect x="59" y="59" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="72" y="59" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="57" y="93" width="13" height="7" rx="3" fill="#455A64"/>
+  <rect x="70" y="93" width="13" height="7" rx="3" fill="#455A64"/>
+  <!-- Person 3 (right, orange shirt) -->
+  <circle cx="112" cy="16" r="11" fill="#FFCCBC"/>
+  <path d="M101 14 Q101 5 112 5 Q123 5 123 14 Z" fill="#5D4037"/>
+  <rect x="101" y="27" width="22" height="34" rx="4" fill="#FF9800"/>
+  <rect x="92" y="29" width="9" height="26" rx="4" fill="#FF9800"/>
+  <rect x="123" y="29" width="9" height="26" rx="4" fill="#FF9800"/>
+  <circle cx="96" cy="57" r="3.5" fill="#FFCCBC"/>
+  <circle cx="128" cy="57" r="3.5" fill="#FFCCBC"/>
+  <rect x="101" y="61" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="114" y="61" width="9" height="34" rx="3" fill="#37474F"/>
+  <rect x="99" y="95" width="13" height="7" rx="3" fill="#455A64"/>
+  <rect x="112" y="95" width="13" height="7" rx="3" fill="#455A64"/>
+</svg>

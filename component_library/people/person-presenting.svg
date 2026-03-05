@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120" viewBox="0 0 80 120">
+  <!-- Flat design presenting person - right arm extended outward -->
+  <!-- Head -->
+  <circle cx="30" cy="16" r="12" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M18 14 Q18 4 30 4 Q42 4 42 14 Z" fill="#5D4037"/>
+  <!-- Body / Shirt -->
+  <rect x="18" y="28" width="24" height="36" rx="4" fill="#1976D2"/>
+  <!-- Left arm (at side) -->
+  <rect x="8" y="30" width="10" height="28" rx="4" fill="#1976D2"/>
+  <!-- Right arm (extended outward, pointing right) -->
+  <rect x="42" y="30" width="28" height="9" rx="4" fill="#1976D2"/>
+  <!-- Hands -->
+  <circle cx="13" cy="60" r="4" fill="#FFCCBC"/>
+  <circle cx="72" cy="34" r="4" fill="#FFCCBC"/>
+  <!-- Pants -->
+  <rect x="18" y="64" width="10" height="36" rx="3" fill="#37474F"/>
+  <rect x="32" y="64" width="10" height="36" rx="3" fill="#37474F"/>
+  <!-- Shoes -->
+  <rect x="16" y="100" width="14" height="8" rx="4" fill="#455A64"/>
+  <rect x="30" y="100" width="14" height="8" rx="4" fill="#455A64"/>
+</svg>

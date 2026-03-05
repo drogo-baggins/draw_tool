@@ -84,10 +84,16 @@ When refinement is active, the UI MUST display:
 
 The system SHALL provide a UI mode for component-based SVG generation.
 
-When component mode is selected, the system generates SVGs by composing pre-built SVG components via LLM JSON instructions.
+When component mode is selected, the system generates SVGs by composing pre-built SVG components (including professional-quality people/face assets and anchor-equipped shapes) via LLM JSON instructions, with automatic connection routing by the composition engine.
 
 #### Scenario: Component Mode Generation
 
 - **GIVEN** the user selects "Component" generation mode.
 - **WHEN** the user enters a prompt and generates.
-- **THEN** the system uses the component library composition pipeline instead of direct LLM SVG generation.
+- **THEN** the system uses the component library composition pipeline (LLM JSON → composition engine with anchor-based connection routing) instead of direct LLM SVG generation.
+
+#### Scenario: Component Mode People Rendering
+
+- **GIVEN** the user selects "Component" mode and enters a prompt involving people (e.g., "team meeting").
+- **WHEN** the SVG is generated.
+- **THEN** the result contains professional-quality pre-built people SVGs rather than LLM-generated human figures.

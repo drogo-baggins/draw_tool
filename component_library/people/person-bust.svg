@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="80" viewBox="0 0 64 80">
+  <!-- Flat design bust / upper body portrait -->
+  <!-- Head -->
+  <circle cx="32" cy="20" r="14" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M18 18 Q18 6 32 6 Q46 6 46 18 Z" fill="#5D4037"/>
+  <!-- Neck -->
+  <rect x="28" y="34" width="8" height="8" fill="#FFCCBC"/>
+  <!-- Shoulders / Shirt -->
+  <path d="M8 76 L8 54 Q8 42 20 42 L44 42 Q56 42 56 54 L56 76 Z" fill="#1976D2"/>
+</svg>

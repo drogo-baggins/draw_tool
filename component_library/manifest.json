@@ -1,0 +1,357 @@
+{
+  "version": "1.0",
+  "components": [
+    {
+      "id": "people-person-standing",
+      "name": "Standing Person",
+      "category": "people",
+      "tags": ["人", "ユーザー", "person", "user", "standing", "立っている"],
+      "file": "people/person-standing.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-sitting",
+      "name": "Sitting Person",
+      "category": "people",
+      "tags": ["人", "座っている", "person", "user", "sitting"],
+      "file": "people/person-sitting.svg",
+      "default_width": 64,
+      "default_height": 100,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-bust",
+      "name": "Person Bust",
+      "category": "people",
+      "tags": ["人", "上半身", "person", "bust", "portrait", "avatar"],
+      "file": "people/person-bust.svg",
+      "default_width": 64,
+      "default_height": 80,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-silhouette",
+      "name": "Person Silhouette",
+      "category": "people",
+      "tags": ["人", "シルエット", "person", "silhouette", "shadow"],
+      "file": "people/person-silhouette.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-face-neutral",
+      "name": "Neutral Face",
+      "category": "people",
+      "tags": ["顔", "表情", "face", "neutral", "emoji"],
+      "file": "people/face-neutral.svg",
+      "default_width": 48,
+      "default_height": 48,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-face-smile",
+      "name": "Smiling Face",
+      "category": "people",
+      "tags": ["顔", "笑顔", "face", "smile", "happy", "emoji"],
+      "file": "people/face-smile.svg",
+      "default_width": 48,
+      "default_height": 48,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-walking",
+      "name": "Walking Person",
+      "category": "people",
+      "tags": ["人", "歩く", "person", "walking", "移動"],
+      "file": "people/person-walking.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-running",
+      "name": "Running Person",
+      "category": "people",
+      "tags": ["人", "走る", "person", "running", "ランニング"],
+      "file": "people/person-running.svg",
+      "default_width": 80,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-presenting",
+      "name": "Presenting Person",
+      "category": "people",
+      "tags": ["人", "プレゼン", "person", "presenting", "説明", "発表"],
+      "file": "people/person-presenting.svg",
+      "default_width": 80,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "right": {"x": 1.0, "y": 0.4}
+      }
+    },
+    {
+      "id": "people-person-raising-hand",
+      "name": "Person Raising Hand",
+      "category": "people",
+      "tags": ["人", "挙手", "person", "raising hand", "質問", "手を挙げる"],
+      "file": "people/person-raising-hand.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-working-desk",
+      "name": "Person Working at Desk",
+      "category": "people",
+      "tags": ["人", "デスク", "person", "working", "desk", "PC", "オフィス", "作業"],
+      "file": "people/person-working-desk.svg",
+      "default_width": 120,
+      "default_height": 100,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5},
+        "right": {"x": 1.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "people-person-pointing-right",
+      "name": "Person Pointing Right",
+      "category": "people",
+      "tags": ["人", "指差し", "person", "pointing", "右", "案内"],
+      "file": "people/person-pointing-right.svg",
+      "default_width": 80,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "right": {"x": 1.0, "y": 0.4}
+      }
+    },
+    {
+      "id": "people-person-waving",
+      "name": "Person Waving",
+      "category": "people",
+      "tags": ["人", "手を振る", "person", "waving", "挨拶", "greeting"],
+      "file": "people/person-waving.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "people-person-group",
+      "name": "Group of People",
+      "category": "people",
+      "tags": ["人々", "グループ", "group", "people", "team", "チーム", "集団"],
+      "file": "people/person-group.svg",
+      "default_width": 140,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5},
+        "right": {"x": 1.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "shape-box-rounded",
+      "name": "Rounded Box",
+      "category": "shapes",
+      "tags": ["ボックス", "箱", "box", "rectangle", "node", "四角"],
+      "file": "shapes/box-rounded.svg",
+      "default_width": 160,
+      "default_height": 80,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "right": {"x": 1.0, "y": 0.5},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "shape-diamond",
+      "name": "Diamond",
+      "category": "shapes",
+      "tags": ["ダイヤ", "菱形", "diamond", "rhombus", "decision", "条件分岐"],
+      "file": "shapes/diamond.svg",
+      "default_width": 100,
+      "default_height": 100,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "right": {"x": 1.0, "y": 0.5},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "shape-cylinder",
+      "name": "Cylinder",
+      "category": "shapes",
+      "tags": ["シリンダー", "データベース", "cylinder", "database", "storage", "DB"],
+      "file": "shapes/cylinder.svg",
+      "default_width": 80,
+      "default_height": 100,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "right": {"x": 1.0, "y": 0.5},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "shape-parallelogram",
+      "name": "Parallelogram",
+      "category": "shapes",
+      "tags": ["平行四辺形", "parallelogram", "input", "output", "IO"],
+      "file": "shapes/parallelogram.svg",
+      "default_width": 160,
+      "default_height": 80,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "right": {"x": 1.0, "y": 0.5},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "shape-circle-node",
+      "name": "Circle Node",
+      "category": "shapes",
+      "tags": ["円", "丸", "circle", "node", "start", "end", "開始", "終了"],
+      "file": "shapes/circle-node.svg",
+      "default_width": 80,
+      "default_height": 80,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "right": {"x": 1.0, "y": 0.5},
+        "bottom": {"x": 0.5, "y": 1.0},
+        "left": {"x": 0.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "icon-arrow-right",
+      "name": "Right Arrow",
+      "category": "icons",
+      "tags": ["矢印", "右", "arrow", "right", "next", "forward"],
+      "file": "icons/arrow-right.svg",
+      "default_width": 24,
+      "default_height": 24,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "icon-gear",
+      "name": "Gear",
+      "category": "icons",
+      "tags": ["歯車", "設定", "gear", "settings", "cog", "config"],
+      "file": "icons/gear.svg",
+      "default_width": 24,
+      "default_height": 24,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "icon-document",
+      "name": "Document",
+      "category": "icons",
+      "tags": ["書類", "ドキュメント", "document", "file", "page", "ファイル"],
+      "file": "icons/document.svg",
+      "default_width": 24,
+      "default_height": 24,
+      "license": "MIT",
+      "anchors": {
+        "top": {"x": 0.5, "y": 0.0},
+        "bottom": {"x": 0.5, "y": 1.0}
+      }
+    },
+    {
+      "id": "decoration-divider-line",
+      "name": "Divider Line",
+      "category": "decorations",
+      "tags": ["区切り線", "仕切り", "divider", "line", "separator", "horizontal rule"],
+      "file": "decorations/divider-line.svg",
+      "default_width": 200,
+      "default_height": 4,
+      "license": "MIT",
+      "anchors": {
+        "left": {"x": 0.0, "y": 0.5},
+        "right": {"x": 1.0, "y": 0.5}
+      }
+    },
+    {
+      "id": "decoration-badge",
+      "name": "Badge",
+      "category": "decorations",
+      "tags": ["バッジ", "ラベル", "badge", "pill", "tag", "label"],
+      "file": "decorations/badge.svg",
+      "default_width": 120,
+      "default_height": 40,
+      "license": "MIT",
+      "anchors": {
+        "left": {"x": 0.0, "y": 0.5},
+        "right": {"x": 1.0, "y": 0.5}
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="100" viewBox="0 0 64 100">
+  <!-- Flat design sitting person -->
+  <!-- Head -->
+  <circle cx="32" cy="14" r="12" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M20 12 Q20 2 32 2 Q44 2 44 12 Z" fill="#5D4037"/>
+  <!-- Body / Shirt -->
+  <rect x="20" y="26" width="24" height="32" rx="4" fill="#1976D2"/>
+  <!-- Arms -->
+  <rect x="10" y="28" width="10" height="24" rx="4" fill="#1976D2"/>
+  <rect x="44" y="28" width="10" height="24" rx="4" fill="#1976D2"/>
+  <!-- Hands -->
+  <circle cx="15" cy="54" r="4" fill="#FFCCBC"/>
+  <circle cx="49" cy="54" r="4" fill="#FFCCBC"/>
+  <!-- Upper legs (horizontal - sitting) -->
+  <rect x="16" y="58" width="32" height="10" rx="4" fill="#37474F"/>
+  <!-- Lower legs (vertical - dangling) -->
+  <rect x="16" y="68" width="10" height="22" rx="3" fill="#37474F"/>
+  <rect x="38" y="68" width="10" height="22" rx="3" fill="#37474F"/>
+  <!-- Shoes -->
+  <rect x="14" y="90" width="14" height="7" rx="3" fill="#455A64"/>
+  <rect x="36" y="90" width="14" height="7" rx="3" fill="#455A64"/>
+</svg>

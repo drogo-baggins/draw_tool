@@ -26,6 +26,7 @@ PURPOSE_MAP = {
 GEN_MODE_MAP = {
     "Direct SVG": "direct_svg",
     "Code Generation (Higher Quality)": "code_generation",
+    "Component (Pre-made Parts)": "component",
 }
 
 

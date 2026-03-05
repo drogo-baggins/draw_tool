@@ -145,23 +145,49 @@ The refinement loop MUST be opt-in (default: disabled).
 
 ### Requirement: Component Library Composition
 
-The system SHALL provide a component-based SVG generation mode where the LLM selects and arranges pre-built SVG components via JSON instructions, and a composition engine assembles the final SVG deterministically.
+The system SHALL provide a component-based SVG generation mode where the LLM selects and arranges pre-built SVG components via JSON instructions, and a composition engine assembles the final SVG deterministically with automatic connection routing.
 
 The component library MUST:
 
 - Contain only MIT or CC0 licensed SVG assets
-- Be managed via a `manifest.json` with metadata (id, name, category, tags, dimensions, license)
-- Support categories: icons, shapes, decorations
-- Be extensible (add new components without code changes)
+- Be managed via a `manifest.json` with metadata (id, name, category, tags, dimensions, license, anchors)
+- Support categories: `people` (最優先), `shapes`, `icons`, `decorations`
+- Define connection anchors per component as normalized coordinates (0.0–1.0) in the `anchors` field
+- Be extensible (add new components by adding SVG files and manifest entries without code changes)
 
-#### Scenario: Component-Based Diagram
+The LLM composition JSON schema MUST separate `elements` (component placement) from `connections` (relationship routing):
+
+- `elements`: Array of component placements with id, component_id, x, y, width, height, optional label/fill
+- `connections`: Array of connection definitions specifying source/target element_id + anchor name, style (straight/orthogonal/curved), stroke properties, and arrow direction
+
+The composition engine MUST:
+
+- Resolve anchor names to absolute coordinates by applying normalized anchor positions to element placement geometry
+- Support three connection routing styles: `straight` (direct line), `orthogonal` (Manhattan routing with max 3 segments, 20px anchor margin, default), `curved` (Bézier with auto-calculated control points)
+- Generate SVG arrow markers (`<marker>`) for connection endpoints
+- Produce valid SVG 1.1 output compatible with `pptx_exporter.py`
+- Handle unknown component IDs gracefully (skip with warning, produce partial result)
+
+#### Scenario: Component-Based Diagram with Connections
 
 - **GIVEN** the user requests "a simple workflow: idea → design → build" in component mode.
-- **WHEN** the LLM outputs a JSON composition specifying components and positions.
-- **THEN** the composition engine assembles an SVG using pre-built components for boxes, arrows, and text labels.
+- **WHEN** the LLM outputs a JSON composition specifying box components with labels and connections between them using anchor names.
+- **THEN** the composition engine resolves anchor coordinates, routes orthogonal connections between boxes, and assembles an SVG with precisely aligned connectors.
+
+#### Scenario: People Component Placement
+
+- **GIVEN** the user requests "a team meeting scene with 3 people around a table" in component mode.
+- **WHEN** the LLM outputs a JSON composition referencing people components (e.g., person-standing, person-sitting).
+- **THEN** the composition engine places pre-built professional-quality people SVGs at the specified positions, producing natural-looking human figures without LLM-generated organic shapes.
 
 #### Scenario: Unknown Component Reference
 
 - **GIVEN** the LLM references a component ID not present in the manifest.
 - **WHEN** the composition engine processes the JSON.
 - **THEN** the system skips the unknown component and logs a warning, producing a partial result rather than failing entirely.
+
+#### Scenario: Connection Routing Accuracy
+
+- **GIVEN** the LLM specifies a connection from element "box-1" anchor "right" to element "box-2" anchor "left" with orthogonal style.
+- **WHEN** the composition engine processes the connection.
+- **THEN** the engine calculates the absolute anchor coordinates from each element's position and size, generates an orthogonal path with right-angle segments, and the resulting connector visually meets the edges of both boxes without misalignment.

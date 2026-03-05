@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Minimal flat face - neutral expression -->
+  <!-- Face circle -->
+  <circle cx="24" cy="24" r="20" fill="#FFCCBC"/>
+  <!-- Eyes -->
+  <circle cx="17" cy="20" r="2.5" fill="#37474F"/>
+  <circle cx="31" cy="20" r="2.5" fill="#37474F"/>
+  <!-- Mouth - straight line -->
+  <line x1="18" y1="32" x2="30" y2="32" stroke="#37474F" stroke-width="2" stroke-linecap="round"/>
+</svg>

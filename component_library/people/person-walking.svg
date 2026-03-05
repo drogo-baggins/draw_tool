@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="120" viewBox="0 0 64 120">
+  <!-- Flat design walking person - right-facing stride -->
+  <!-- Head -->
+  <circle cx="34" cy="16" r="12" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M22 14 Q22 4 34 4 Q46 4 46 14 Z" fill="#5D4037"/>
+  <!-- Body / Shirt - slight forward lean -->
+  <rect x="22" y="28" width="24" height="36" rx="4" fill="#1976D2" transform="rotate(5 34 46)"/>
+  <!-- Left arm (back swing) -->
+  <rect x="14" y="32" width="10" height="26" rx="4" fill="#1976D2" transform="rotate(15 19 32)"/>
+  <!-- Right arm (forward swing) -->
+  <rect x="44" y="30" width="10" height="26" rx="4" fill="#1976D2" transform="rotate(-15 49 30)"/>
+  <!-- Hands -->
+  <circle cx="22" cy="60" r="4" fill="#FFCCBC"/>
+  <circle cx="46" cy="58" r="4" fill="#FFCCBC"/>
+  <!-- Left leg (back) -->
+  <rect x="18" y="64" width="10" height="36" rx="3" fill="#37474F" transform="rotate(15 23 64)"/>
+  <!-- Right leg (forward) -->
+  <rect x="34" y="64" width="10" height="36" rx="3" fill="#37474F" transform="rotate(-15 39 64)"/>
+  <!-- Shoes -->
+  <rect x="24" y="100" width="14" height="8" rx="4" fill="#455A64"/>
+  <rect x="26" y="100" width="14" height="8" rx="4" fill="#455A64" transform="rotate(-10 33 104)"/>
+</svg>

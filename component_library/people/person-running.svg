@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="120" viewBox="0 0 80 120">
+  <!-- Flat design running person - right-facing wide stride -->
+  <!-- Head -->
+  <circle cx="38" cy="16" r="12" fill="#FFCCBC"/>
+  <!-- Hair -->
+  <path d="M26 14 Q26 4 38 4 Q50 4 50 14 Z" fill="#5D4037"/>
+  <!-- Body / Shirt - forward lean -->
+  <rect x="26" y="28" width="24" height="34" rx="4" fill="#1976D2" transform="rotate(10 38 45)"/>
+  <!-- Left arm (bent back) -->
+  <rect x="16" y="30" width="9" height="22" rx="4" fill="#1976D2" transform="rotate(30 20 30)"/>
+  <!-- Right arm (bent forward) -->
+  <rect x="50" y="28" width="9" height="22" rx="4" fill="#1976D2" transform="rotate(-40 54 28)"/>
+  <!-- Hands -->
+  <circle cx="26" cy="50" r="3.5" fill="#FFCCBC"/>
+  <circle cx="52" cy="46" r="3.5" fill="#FFCCBC"/>
+  <!-- Left leg (far back) -->
+  <rect x="18" y="62" width="10" height="36" rx="3" fill="#37474F" transform="rotate(25 23 62)"/>
+  <!-- Right leg (far forward) -->
+  <rect x="40" y="62" width="10" height="36" rx="3" fill="#37474F" transform="rotate(-25 45 62)"/>
+  <!-- Shoes -->
+  <rect x="30" y="98" width="14" height="8" rx="4" fill="#455A64"/>
+  <rect x="28" y="96" width="14" height="8" rx="4" fill="#455A64" transform="rotate(-20 35 100)"/>
+</svg>

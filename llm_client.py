@@ -26,7 +26,7 @@ TEMPLATES_DIR = os.path.join(
 VALID_PURPOSES = ["classic", "diagram", "icon", "infographic", "flat_illustration"]
 
 # Valid generation modes
-VALID_MODES = ["direct_svg", "code_generation"]
+VALID_MODES = ["direct_svg", "code_generation", "component"]
 
 
 def load_template(purpose: str) -> dict:
@@ -156,6 +156,35 @@ class LLMClient:
         if current_svg:
             mode_instruction = "Modify or refine the existing SVG based on the user's instruction. Keep the artistic style consistent."
             context_data = f"\n### Current SVG Code:\n{current_svg}"
+
+        # Try component composition mode
+        if generation_mode == "component":
+            try:
+                svg = self._generate_via_component(
+                    prompt, template, mode_instruction, context_data
+                )
+                return {
+                    "svg": svg,
+                    "purpose": resolved_purpose,
+                    "generation_mode": "component",
+                    "fallback": False,
+                    "repaired": False,
+                }
+            except Exception as e:
+                logger.warning(
+                    "Component mode failed (%s), falling back to direct SVG", e
+                )
+                # Fall back to direct SVG
+                svg = self._generate_direct_svg(
+                    prompt, template, mode_instruction, context_data
+                )
+                return {
+                    "svg": svg,
+                    "purpose": resolved_purpose,
+                    "generation_mode": "direct_svg",
+                    "fallback": True,
+                    "repaired": self._last_repair_attempts > 0,
+                }
 
         # Try code generation mode
         if generation_mode == "code_generation":
@@ -291,6 +320,84 @@ class LLMClient:
             return executor.execute(code)
         except Exception as e:
             raise Exception(f"Code generation failed: {str(e)}")
+
+    def _generate_via_component(
+        self, prompt: str, template: dict, mode_instruction: str, context_data: str
+    ) -> str:
+        """Generate SVG by having the LLM output a JSON composition spec,
+        then rendering it via the CompositionEngine.
+
+        The LLM receives a list of available components from the manifest and
+        outputs a JSON object describing element placement and connections.
+        The CompositionEngine converts this into a final SVG.
+        """
+        from composition_engine import CompositionEngine
+        import json
+
+        engine = CompositionEngine()
+
+        # Build component list summary for the prompt
+        component_list = engine.get_component_summary()
+
+        # Load the component template directly (not in VALID_PURPOSES, so not pre-loaded)
+        comp_template_path = os.path.join(TEMPLATES_DIR, "component.yaml")
+        if os.path.exists(comp_template_path):
+            with open(comp_template_path, "r", encoding="utf-8") as f:
+                comp_template = yaml.safe_load(f)
+        else:
+            raise Exception(
+                "Component prompt template not found at prompt_templates/component.yaml"
+            )
+
+        system_prompt_template = comp_template.get("system_prompt", "")
+        system_prompt = system_prompt_template.format(
+            mode_instruction=mode_instruction,
+            context_data=context_data,
+            component_list=component_list,
+        )
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Create: {prompt}"},
+                ],
+                temperature=0.3,
+                timeout=60.0,
+            )
+            content = response.choices[0].message.content.strip()
+
+            # Extract JSON from response (handle markdown code blocks)
+            composition = self._extract_json(content)
+
+            # Compose SVG from JSON specification
+            svg = engine.compose(composition)
+            return svg
+        except json.JSONDecodeError as e:
+            raise Exception(f"Component mode: LLM output was not valid JSON: {e}")
+        except Exception as e:
+            raise Exception(f"Component composition failed: {str(e)}")
+
+    @staticmethod
+    def _extract_json(content: str) -> dict:
+        """Extract JSON object from LLM response, handling markdown code blocks."""
+        import json
+
+        # Try to extract from ```json ... ``` block
+        json_match = re.search(r"```(?:json)?\s*\n(.*?)```", content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group(1).strip())
+
+        # Try to find raw JSON object
+        # Look for the outermost { ... }
+        brace_start = content.find("{")
+        brace_end = content.rfind("}")
+        if brace_start != -1 and brace_end != -1 and brace_end > brace_start:
+            return json.loads(content[brace_start : brace_end + 1])
+
+        # Last resort: try parsing entire content
+        return json.loads(content)
 
     @staticmethod
     def _extract_code(content: str) -> str:

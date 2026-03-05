@@ -167,89 +167,194 @@ Provide specific, actionable improvement instructions.
 - 反復中は進捗バー表示（"Refining 1/3...", "Refining 2/3..."）
 - 各反復のSVGを保存し、ユーザーが任意の版を選択可能
 
-### Decision 6: コンポーネントライブラリの構造
+### Decision 6: コンポーネントライブラリの構造 — 課題特化設計
 
-**選択**: JSONマニフェスト + SVGフラグメントファイル + LLM JSONコンポジション指示
+**選択**: JSONマニフェスト + SVGフラグメント + **接続ポート付きコンポーネント** + **自動結線ルーティング**
 
-**理由**:
+**設計根拠 — 残存課題からの逆算**:
 
-- SVGフラグメントを独立ファイルで管理することで、追加・削除が容易
-- JSONマニフェストでメタデータ（名前、カテゴリ、タグ、デフォルトサイズ）を管理
-- LLMはJSONで配置指示を出すだけなので、トークン効率が良い
+戦略1〜3（コード生成・用途特化プロンプト・ビジョンフィードバック）の実装後も、以下の2つの課題が全モデルで共通して残存している:
+
+1. **人・顔の描画品質**: クラシック・アイコン・フラットイラストのいずれでも、人や顔の描画が稚拙・不自然。LLMがテキストトークン空間で有機的な形状（顔の輪郭、目鼻口の相対位置、体のプロポーション）を正確に表現できないことが根本原因であり、プロンプト改善やコード生成では解決不可能。
+2. **ダイアグラムの結線ずれ**: 結線（コネクタ）が図形の接続点から外れる問題。LLMが座標を直接指定する限り、図形のサイズ・位置との整合性を保てない。
+
+コンポーネントライブラリは、この2つの課題を**構造的に解決**するために設計する:
+
+- 課題1 → **プロ品質のSVGパーツ**（特に人物・顔）を事前に用意し、LLMは配置だけを指示
+- 課題2 → **接続ポート（anchors）付きコンポーネント** + **コンポジションエンジンによる結線座標の自動計算**
 
 **ディレクトリ構造**:
 
 ```
 component_library/
-├── manifest.json          # パーツ一覧とメタデータ
-├── icons/
-│   ├── arrow-right.svg
-│   ├── person.svg
-│   ├── gear.svg
+├── manifest.json          # パーツ一覧、メタデータ、接続ポート定義
+├── people/                # ★最優先: 人物・顔パーツ
+│   ├── person-standing.svg
+│   ├── person-sitting.svg
+│   ├── person-bust.svg
+│   ├── person-silhouette.svg
+│   ├── face-neutral.svg
+│   ├── face-smile.svg
 │   └── ...
-├── shapes/
-│   ├── rounded-rect.svg
+├── shapes/                # ★優先: 接続ポート付き図形
+│   ├── box-rounded.svg
 │   ├── diamond.svg
+│   ├── cylinder.svg
+│   ├── parallelogram.svg
+│   ├── circle-node.svg
 │   └── ...
-└── decorations/
+├── icons/                 # 汎用アイコン
+│   ├── arrow-right.svg
+│   ├── gear.svg
+│   ├── document.svg
+│   └── ...
+└── decorations/           # 装飾パーツ
     ├── divider-line.svg
     ├── badge.svg
     └── ...
 ```
 
-**manifest.json スキーマ**:
+**manifest.json スキーマ — 接続ポート付き**:
 
 ```json
 {
   "components": [
     {
-      "id": "icon-person",
-      "name": "Person",
-      "category": "icons",
-      "tags": ["人", "ユーザー", "person", "user"],
-      "file": "icons/person.svg",
-      "default_width": 48,
-      "default_height": 48,
-      "license": "MIT"
+      "id": "shape-box-rounded",
+      "name": "Rounded Box",
+      "category": "shapes",
+      "tags": ["ボックス", "box", "rectangle", "node"],
+      "file": "shapes/box-rounded.svg",
+      "default_width": 160,
+      "default_height": 80,
+      "license": "MIT",
+      "anchors": {
+        "top": { "x": 0.5, "y": 0.0 },
+        "right": { "x": 1.0, "y": 0.5 },
+        "bottom": { "x": 0.5, "y": 1.0 },
+        "left": { "x": 0.0, "y": 0.5 }
+      }
+    },
+    {
+      "id": "people-person-standing",
+      "name": "Standing Person",
+      "category": "people",
+      "tags": ["人", "ユーザー", "person", "user", "standing"],
+      "file": "people/person-standing.svg",
+      "default_width": 64,
+      "default_height": 120,
+      "license": "MIT",
+      "anchors": {
+        "top": { "x": 0.5, "y": 0.0 },
+        "bottom": { "x": 0.5, "y": 1.0 }
+      }
     }
   ]
 }
 ```
 
-**LLMコンポジション指示のJSONスキーマ**:
+`anchors` フィールドは正規化座標（0.0〜1.0）で定義し、コンポーネントの配置サイズに応じて絶対座標に変換する。これによりLLMは座標を一切指定せず、アンカー名だけで接続先を指定できる。
+
+**LLMコンポジション指示のJSONスキーマ — connection タイプ付き**:
 
 ```json
 {
   "canvas": { "width": 800, "height": 600, "background": "#ffffff" },
   "elements": [
     {
-      "component_id": "icon-person",
+      "id": "box-1",
+      "component_id": "shape-box-rounded",
       "x": 100,
       "y": 200,
-      "width": 64,
-      "height": 64,
-      "fill": "#3498db"
+      "width": 160,
+      "height": 80,
+      "label": "企画",
+      "fill": "#2196F3"
+    },
+    {
+      "id": "box-2",
+      "component_id": "shape-box-rounded",
+      "x": 400,
+      "y": 200,
+      "width": 160,
+      "height": 80,
+      "label": "開発",
+      "fill": "#4CAF50"
+    },
+    {
+      "id": "person-1",
+      "component_id": "people-person-standing",
+      "x": 140,
+      "y": 60,
+      "width": 48,
+      "height": 90
     },
     {
       "type": "text",
-      "content": "ユーザー",
-      "x": 100,
-      "y": 280,
-      "font_size": 14,
-      "fill": "#333333"
-    },
+      "content": "ワークフロー",
+      "x": 350,
+      "y": 50,
+      "font_size": 20,
+      "fill": "#212121",
+      "font_weight": "bold"
+    }
+  ],
+  "connections": [
     {
-      "type": "line",
-      "x1": 164,
-      "y1": 232,
-      "x2": 300,
-      "y2": 232,
-      "stroke": "#999999",
-      "stroke_width": 2
+      "from": { "element_id": "box-1", "anchor": "right" },
+      "to": { "element_id": "box-2", "anchor": "left" },
+      "style": "orthogonal",
+      "stroke": "#607D8B",
+      "stroke_width": 2,
+      "arrow": "end",
+      "label": ""
     }
   ]
 }
 ```
+
+**`connections` と `elements` を分離する理由**:
+
+- LLMは「何を配置するか」と「何を繋ぐか」を別の関心事として記述できる
+- コンポジションエンジンは `elements` の配置完了後に `connections` を処理し、接続ポートの絶対座標を算術的に計算して結線を描画
+- 結線の座標精度が LLM の出力品質に一切依存しなくなる
+
+**結線ルーティングアルゴリズム**:
+
+コンポジションエンジンは以下の結線スタイルをサポートする:
+
+1. **`straight`** — 2点間の直線。単純だが図形と重なる可能性あり
+2. **`orthogonal`** （デフォルト）— マンハッタンルーティング。水平・垂直セグメントのみで構成。以下のシンプルなアルゴリズムを採用:
+   - 起点と終点のアンカー方向に基づき、最短の直角パスを生成
+   - 起点アンカーから一定距離（マージン20px）だけ進出 → 水平/垂直に中間点へ → 終点アンカーへ進入
+   - 最大3セグメント（出発・中間・到着）で構成し、複雑なルーティングは避ける
+3. **`curved`** — ベジェ曲線。制御点はアンカー方向に基づき自動計算
+
+```python
+# orthogonal routing の概念実装（composition_engine.py 内）
+def route_orthogonal(start_x, start_y, start_dir, end_x, end_y, end_dir, margin=20):
+    """
+    マンハッタンルーティング: アンカー方向に基づく直角パス生成。
+    start_dir/end_dir: 'top'|'right'|'bottom'|'left'
+    Returns: list of (x, y) waypoints
+    """
+    # 起点からマージン分だけアンカー方向に進出
+    sx, sy = extend_from_anchor(start_x, start_y, start_dir, margin)
+    # 終点へマージン分だけアンカー方向から進入
+    ex, ey = extend_from_anchor(end_x, end_y, end_dir, margin)
+    # 中間経路: 水平→垂直 or 垂直→水平
+    mid_x, mid_y = (sx + ex) / 2, (sy + ey) / 2
+    if start_dir in ('left', 'right'):
+        return [(start_x, start_y), (sx, sy), (mid_x, sy), (mid_x, ey), (ex, ey), (end_x, end_y)]
+    else:
+        return [(start_x, start_y), (sx, sy), (sx, mid_y), (ex, mid_y), (ex, ey), (end_x, end_y)]
+```
+
+**却下した代替案**:
+
+- LLMが座標を直接指定する結線方式: 結線ずれの根本原因そのものであり、採用不可
+- 完全なグラフルーティングライブラリ（JointJS, GoJS等）: 過度な複雑性。standalone Python エンジン（~200行）で十分
+- コンポーネントなしの結線改善のみ: 人・顔の品質問題が未解決のまま残る
 
 ### Decision 7: プロンプトテンプレートの管理方式
 

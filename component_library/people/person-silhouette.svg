@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="120" viewBox="0 0 64 120">
+  <!-- Single-color person silhouette -->
+  <path d="M32 4 C24 4 20 10 20 16 C20 22 24 28 32 28 C40 28 44 22 44 16 C44 10 40 4 32 4 Z M20 32 C12 32 8 38 8 46 L8 60 L16 60 L16 100 L18 108 L28 108 L28 68 L36 68 L36 108 L46 108 L48 100 L48 60 L56 60 L56 46 C56 38 52 32 44 32 Z" fill="#546E7A"/>
+</svg>
