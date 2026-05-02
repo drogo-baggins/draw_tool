@@ -6,3 +6,7 @@ python-dotenv
 pyyaml
 svgelements
 drawsvg
+vtracer
+Pillow
+requests
+opencv-python-headless

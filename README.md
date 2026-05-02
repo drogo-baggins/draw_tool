@@ -4,11 +4,26 @@
 
 ## 機能
 
+### 🤖 LLM → SVG モード
 - **自然言語による図の生成**: プロンプトを入力するとLLMがSVGコードを自動生成
 - **用途特化プロンプト**: Diagram・Icon・Infographic・Flat Illustration など用途別に最適化されたプロンプトテンプレートを自動選択（手動選択も可能）
 - **コード生成モード**: LLMがPythonコード（`drawsvg`ライブラリ）を生成し、実行結果としてSVGを取得。直接SVG出力より高品質な図形を生成可能
 - **コンポーネント合成モード**: 人物・図形・アイコンなどの事前設計済みSVGパーツを使い、LLMがJSONレイアウトを生成→コンポジションエンジンがSVGを組み立て。人物描画やダイアグラム結線の品質が大幅に向上
 - **ビジョンフィードバック**: ビジョン対応モデルが生成結果を画像として評価し、改善指示を元に反復的にSVGを洗練（オプション機能）
+- **生成/評価プロファイル分離**: SVG生成用モデルと Vision 評価用モデルを別プロファイルで使い分け可能
+
+### 🖼️ Image → SVG モード（Venice AI）
+- **高品質イラスト生成**: Venice AI の画像生成APIを使用し、テキストプロンプトからリアルなイラストを生成
+- **モデル選択**: `flux-2-pro`（デフォルト）、`venice-sd35`、`imagineart-1.5-pro` など多数のモデルから選択可能
+- **スタイルプリセット**: `Minimalist`・`Flat Papercut`・`Line Art`・`Lowpoly` 等のスタイルを指定可能
+- **自動プロンプト強化**: ベクトル化に適したキーワードを自動付加（トグル可能）
+- **2ステージUI**:
+  - **Stage 1（生成・確認）**: 画像を生成し、結果を確認。品質に満足したら Stage 2 へ進む
+  - **Stage 2（ベクトル化チューニング）**: 生成画像を固定したまま、Color Count・Blur・Filter Speckle などのパラメータを調整してSVGを反復生成
+- **OpenCV ベクトル化**: k-meansクラスタリング＋輪郭検出によるクリーンなフラットSVGを生成（背景色を自動検出してスキップ）
+- **Color Count 最大64**: 色数を増やすことで色が消えずに再現される
+
+### 共通機能
 - **リアルタイムプレビュー**: 生成・編集したSVGを即座に確認
 - **SVGコードエディタ**: テキストエリアによるSVGコードの直接編集
 - **Refineモード**: 既存のSVGを元にLLMへ修正指示を出せる
@@ -22,13 +37,16 @@ draw_tool/
 ├── llm_client.py           # LLM API クライアント（用途分類・プロンプト構築・SVG生成）
 ├── code_executor.py        # サンドボックスコード実行（コード生成モード用）
 ├── vision_feedback.py      # ビジョンフィードバックループ（SVG評価・反復改善）
+├── image_vectorizer.py     # Image → SVG パイプライン（Venice AI 生成 + OpenCV ベクトル化）
 ├── pptx_exporter.py        # SVG → PPTX ネイティブシェイプ変換
 ├── svg_processor.py        # SVG パース・変換ユーティリティ
 ├── composition_engine.py   # コンポーネント合成エンジン（アンカー解決・結線ルーティング）
 ├── requirements.txt        # Python 依存パッケージ
 ├── prompt_templates/       # 用途別プロンプトテンプレート (YAML)
 │   ├── classic.yaml        #   汎用（デフォルト）
+│   ├── classic.svg_specialist.yaml # SVG特化モデル向け override
 │   ├── diagram.yaml        #   ダイアグラム・フローチャート
+│   ├── diagram.svg_specialist.yaml # SVG特化モデル向け diagram override
 │   ├── icon.yaml           #   アイコン・シンボル
 │   ├── infographic.yaml    #   インフォグラフィック・データ可視化
 │   ├── flat_illustration.yaml  #   フラットデザインイラスト
@@ -51,6 +69,7 @@ draw_tool/
 
 - Python 3.9 以上
 - OpenAI互換APIキー（GPT-4o 等）
+- Venice AI APIキー（🖼️ Image → SVG モードを使用する場合）
 
 > **ビジョンフィードバック機能を使用する場合**: 画像入力に対応したモデル（GPT-4o、GPT-4 Turbo with Vision 等）が必要です。この機能はオプトインのため、OFFにしている場合はテキスト専用モデルでも動作します。
 
@@ -138,6 +157,7 @@ streamlit run app.py
 | `llm_client.py`           | OpenAI互換APIとの通信、用途自動分類（キーワード→LLMフォールバック）、YAMLテンプレートの読込・変数展開、Direct SVG / Code Generation / Component の3モード分岐                                                                                       |
 | `code_executor.py`        | LLMが生成したPythonコードのサンドボックス実行。ASTによるimportホワイトリスト検証・危険な組み込み関数ブロック、環境変数ホワイトリスト化、subprocess分離、10秒タイムアウト                                                                            |
 | `vision_feedback.py`      | SVGを `resvg_py` でPNG変換し、Vision APIに送信して視覚的評価を取得。評価結果を改善指示としてLLMに渡し、SVGを反復的に洗練                                                                                                                            |
+| `image_vectorizer.py`     | Venice AI 画像生成API呼び出し、PIL前処理（Gaussian blur・リサイズ）、OpenCV k-meansクラスタリング＋輪郭検出によるSVGベクトル化。背景色を自動検出してスキップし、前景色の消失を防ぐ                                                                        |
 | `pptx_exporter.py`        | SVGの図形・パス・テキスト・グラデーションをPowerPointのネイティブ編集可能シェイプに変換                                                                                                                                                             |
 | `svg_processor.py`        | SVGサニタイズ（スクリプト除去・外部リソース参照除去・イベントハンドラ除去）、エンコードユーティリティ                                                                                                                                               |
 | `composition_engine.py`   | コンポーネント合成エンジン。マニフェストからSVGパーツを読み込み、JSON仕様に基づきアンカー解決・要素配置・Manhattan/曲線/直線結線ルーティング・矢印マーカー生成を行う。LLM出力値に対する多層防御サニタイズ（`_sanitize_attr` / `_safe_float`）を実装 |
@@ -166,11 +186,13 @@ streamlit run app.py
 | **典型的な1回の生成（Refinement OFF）**                 | **1〜2回**                 |
 | **典型的な1回の生成（Refinement ON, 3イテレーション）** | **7〜8回**                 |
 
-> ビジョンフィードバック使用時は、生成用モデルとビジョン評価用モデルに同じLLMプロファイル設定が使用されます。
+> ビジョンフィードバック使用時は、生成用モデルとビジョン評価用モデルを別々に選択できます。
 
 ## LLM設定
 
-`config/llm_configs.yaml` で複数のLLMプロファイルを管理できます。サイドバーから切り替え・編集が可能です。
+`config/llm_configs.yaml` で複数のLLMプロファイルを管理できます。生成用と Vision 評価用を別々に選択できます。
+
+**🤖 LLM → SVG モード用**（OpenAI互換プロバイダー）:
 
 ```yaml
 configs:
@@ -179,17 +201,69 @@ configs:
     model: "gpt-4o"
     base_url: "https://api.openai.com/v1"
     api_key: "" # .env の OPENAI_API_KEY を使う場合は空欄
-  - label: "Local Ollama"
-    provider: "openai" # OpenAI互換エンドポイント
-    model: "llama3"
-    base_url: "http://localhost:11434/v1"
-    api_key: "ollama"
-selected_label: "OpenAI GPT-4o"
+    supports_vision: true
+    prompt_profile: default
+  - label: "OpenAI GPT-4.1 Mini"
+    provider: "openai"
+    model: "gpt-4.1-mini"
+    base_url: "https://api.openai.com/v1"
+    api_key: ""
+    supports_vision: true
+    prompt_profile: default
+selected_generation_label: "OpenAI GPT-4o"
+selected_vision_label: "OpenAI GPT-4o"
 ```
+
+**🖼️ Image → SVG モード用**（Venice AI）:
+
+Image → SVG モードでは、`config/llm_configs.yaml` 内に `label: "VeniceAI"` のエントリを追加し、Venice AI APIキーを設定します：
+
+```yaml
+  - label: "VeniceAI"
+    provider: "venice"
+    model: "flux-2-pro"
+    base_url: "https://api.venice.ai/api/v1"
+    api_key: "your-venice-api-key-here"
+    supports_vision: false
+```
+
+`llm_configs.yaml.example` を参考にしてください。
+
+`supports_vision: false` のプロファイルは Vision Refinement では選べても実行時にブロックされます。ローカルや特殊用途のプロファイルを追加する場合は、このフラグで評価モデルとの役割を分離してください。
 
 ## PPTXエクスポートについて
 
 エクスポート機能は `python-pptx` と `svgelements` を使用し、SVGの図形・パス・テキスト・グラデーションをPowerPointのネイティブシェイプとして変換します。`resvg-py` (Rust製) を利用するため、Windowsでも Cairo DLL 不要で動作します。
+
+## Icon Fine-Tuning Data Prep
+
+`research/icon_finetuning/runs/.../corpus/accept_sft.jsonl` は人手で `accept` 判定された instruction → SVG 正例コーパスです。学習前にはこのファイルをそのまま使うより、訓練向けに SVG 名前空間を正規化し、固定 split に落としておく方が安全です。
+
+### 1. Triage 済み corpus を出力
+
+```bash
+python tools/export_triaged_icon_corpus.py \
+  --selected research/icon_finetuning/runs/2026-03-17-gpt41mini-ppt-phase1-core/selected.jsonl \
+  --output-dir research/icon_finetuning/runs/2026-03-17-gpt41mini-ppt-phase1-core/corpus
+```
+
+### 2. SFT 用 train / valid を準備
+
+```bash
+python tools/prepare_icon_sft_dataset.py \
+  --accept-sft research/icon_finetuning/runs/2026-03-17-gpt41mini-ppt-phase1-core/corpus/accept_sft.jsonl \
+  --output-dir research/icon_finetuning/runs/2026-03-17-gpt41mini-ppt-phase1-core/sft \
+  --valid-fraction 0.1
+```
+
+出力される主なファイル:
+
+- `train.full.jsonl` / `valid.full.jsonl`: メタデータ付きの完全版
+- `train.messages.jsonl` / `valid.messages.jsonl`: chat/messages 形式
+- `train.prompt_completion.jsonl` / `valid.prompt_completion.jsonl`: prompt/completion 形式
+- `manifest.json`: split 件数
+
+この準備段階では `ns0:` のような XML namespace prefix を除去した SVG を使うため、学習データに不要なシリアライズ癖が混ざりにくくなります。
 
 ## セキュリティ対策
 

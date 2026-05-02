@@ -4,9 +4,22 @@ configs:
   label: OpenAI GPT-4o
   model: gpt-4o
   provider: openai
-- api_key: 'ollama'      # Ollama はダミーキーでOK
-  base_url: http://localhost:11434/v1
-  label: Ollama-llama3
-  model: llama3
-  provider: openai-compatible
-selected_label: OpenAI GPT-4o
+  supports_vision: true
+  prompt_profile: default
+  request_timeout: 60
+  use_llm_classification: true
+  api_style: chat
+  max_output_tokens: 2048
+- api_key: ''            # Venice AI API キー（Image → SVG モードで使用）
+  base_url: https://api.venice.ai/api/v1
+  label: VeniceAI
+  model: flux-2-pro
+  provider: venice
+  supports_vision: false
+  prompt_profile: default
+  request_timeout: 120
+  use_llm_classification: false
+  api_style: chat
+  max_output_tokens: 2048
+selected_generation_label: OpenAI GPT-4o
+selected_vision_label: OpenAI GPT-4o
